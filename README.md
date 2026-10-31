@@ -5,6 +5,7 @@ Current capabilities:
 1. Listing folders
 2. Search files
 3. Read files and provide suggestions.
+4. Session management
 
 How to run this project:
 1. plain: python agent.py
