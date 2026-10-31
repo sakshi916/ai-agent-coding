@@ -1,5 +1,6 @@
-import json, os, ollama
+import json, ollama
 from pathlib import Path
+from validation import validate_path
 
 MODEL  = "qwen3.8:27b-mlx"                        # ← change if you pulled a different model
 MEMO   = Path.home() / "personal_agent" / "agent_memory"
@@ -12,8 +13,12 @@ def load_history():
 def save_history(msgs):
     HIST.write_text(json.dumps(msgs, indent=2))
 
+
 # ── the three things the agent can do ──────────────────────────────────
 def list_folder(path, depth=2):
+    err = validate_path(path)
+    if err:
+        return err
     root = Path(path)
     if not root.is_dir():
         return f"Error: not a folder: {path}"
@@ -27,6 +32,9 @@ def list_folder(path, depth=2):
     return "\n".join(out[:200])
 
 def read_file(path, max_chars=6000):
+    err=validate_path(path)
+    if err:
+        return err
     p = Path(path)
     if not p.is_file():
         return f"Error: not a file: {path}"
@@ -34,6 +42,9 @@ def read_file(path, max_chars=6000):
     return t[:max_chars] + ("…[truncated]" if len(t) > max_chars else "")
 
 def search_folder(path, query, limit=15):
+    err = validate_path(path)
+    if err:
+        return err
     root = Path(path)
     hits = []
     for f in root.rglob("*"):
@@ -71,18 +82,18 @@ TOOLS = [
 ]
 DISPATCH = {"list_folder": list_folder, "read_file": read_file, "search_folder": search_folder}
  
-def run(user_msg, history, folder):
+def run(user_msg, history):
     history.append({"role":"user","content":user_msg})
     msgs = [
         {"role":"system","content":
-         f"You are a local assistant. The user's folder is {folder}. "
+         f"You are a local assistant. Working in this workspace:{Path.cwd()}. You can list files, read files, and search for keywords in text files. "
          f"Use the tools to explore it. Be concise."},
         *history[-40:]                      # keep last 40 messages in context
     ]
     for _ in range(8):
         resp = ollama.chat(model=MODEL, messages=msgs, tools=TOOLS)
         m = resp["message"]
-        print("m----------",m)
+        print("------------message------------", m)
         '''
         role='assistant' content='' thinking='The user wants to list files in their folder. The folder is "llm-playground". I\'ll list the contents of that directory.' images=None tool_name=None tool_calls=[ToolCall(function=Function(name='list_folder', arguments={'path': 'llm-playground'}))]
         '''
@@ -98,12 +109,11 @@ def run(user_msg, history, folder):
         return m.get("content","")
 
 if __name__ == "__main__":
-    folder  = input("Folder path: ").strip()
     history = load_history()
     print(f"Model: {MODEL}  |  Saved messages: {len(history)}\n")
     while True:
         u = input("you » ").strip()
         if u in ("quit","exit"):
             save_history(history); print("Saved. Bye."); break
-        print(f"agent » {run(u, history, folder)}\n")
+        print(f"agent » {run(u, history)}\n")
         save_history(history)              # ← this is the memory
