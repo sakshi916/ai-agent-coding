@@ -1,9 +1,10 @@
 import ollama
 from pathlib import Path
 from read_tools import TOOLS as READ_TOOLS, DISPATCH as READ_DISPATCH
-from session_management import load_session, save_session, clear_session, list_sessions, delete_session
+from session_management import load_session, save_session
 from model import MODEL
 from write_tools  import TOOLS as WRITE_TOOLS,  DISPATCH as WRITE_DISPATCH
+from command_registry import handle_command
 
 # Build merged registries
 TOOLS    = READ_TOOLS + WRITE_TOOLS
@@ -48,38 +49,10 @@ if __name__ == "__main__":
     while True:
         u = input("you » ").strip()
         if u.startswith("/"):
-            if u == "/clear":
-                clear_session(history)
-                history = []
-                print("Cleared history.")
-                continue
-            elif u == "/exit":
-                clear_session(history)
-                print("Saved. Bye.")
+            new_history, stop = handle_command(u, history)
+            if stop:
                 break
-            elif u.startswith("/load "):
-                save_session(history)              # ← this is the memory
-                key = u.split(" ",1)[1].strip()
-                history = load_session(key)
-                print(f"Loaded '{key}' ({len(history)} msgs)")
-                continue
-            elif u == "/list":
-                print("Available conversations:")
-                for key in list_sessions():
-                    print(f"  - {key}")
-                continue
-            elif u == "/deleteAll":
-                delete_session()
-                history = []
-                print("All sessions deleted.")
-                continue
-            elif u.startswith("/delete "):
-                key = u.split(" ",1)[1].strip()
-                delete_session(key)
-                history = []
-                print(f"Deleted session '{key}'.")
-                continue
-            else:
-                print("Commands: /load, /clear, /exit")
+            history = new_history if new_history is not None else history
+            continue
         print(f"agent » {run(u, history, system_prompt)}\n")
         save_session(history)              # ← this is the memory

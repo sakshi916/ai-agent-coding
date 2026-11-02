@@ -65,7 +65,7 @@ SENSITIVE_PATTERNS = [
 
 
 # ── Write-specific validation (stricter than reads) ──────────────────────────
-def validate_write_path(path) -> str | None:
+def validate_write_path(path):
     """Return an error string, or None if the path is safe to write.
 
     Unlike validate_path() from validation.py:
