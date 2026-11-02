@@ -6,6 +6,8 @@ Current capabilities:
 2. Search files
 3. Read files and provide suggestions.
 4. Session management
+5. Write
+6. Delete
 
 How to run this project:
 1. plain: python agent.py

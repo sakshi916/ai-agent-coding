@@ -1,8 +1,13 @@
 import ollama
 from pathlib import Path
-from read_tools import TOOLS, DISPATCH
+from read_tools import TOOLS as READ_TOOLS, DISPATCH as READ_DISPATCH
 from session_management import load_session, save_session, clear_session, list_sessions, delete_session
 from model import MODEL
+from write_tools  import TOOLS as WRITE_TOOLS,  DISPATCH as WRITE_DISPATCH
+
+# Build merged registries
+TOOLS    = READ_TOOLS + WRITE_TOOLS
+DISPATCH = {**READ_DISPATCH, **WRITE_DISPATCH}
 
 def run(user_msg, history, system_prompt):
     history.append({"role":"user","content":user_msg})
@@ -14,7 +19,7 @@ def run(user_msg, history, system_prompt):
     for _ in range(8):
         resp = ollama.chat(model=MODEL, messages=msgs, tools=TOOLS)
         m = resp["message"]
-        print("------------message------------", m)
+        #print("------------message------------", m)
         '''
         role='assistant' content='' thinking='The user wants to list files in their folder. The folder is "llm-playground". I\'ll list the contents of that directory.' images=None tool_name=None tool_calls=[ToolCall(function=Function(name='list_folder', arguments={'path': 'llm-playground'}))]
         '''
@@ -34,7 +39,11 @@ if __name__ == "__main__":
     history = load_session()
     print(f"Model: {MODEL}  |  Saved messages: {len(history)}\n")
     system_prompt = ""
-    with open("SystemPrompt.txt", "r", encoding="utf-8") as file:
+    # Get the directory where agent.py is located
+    script_dir = Path(__file__).parent
+    # Construct the full path to the prompt file
+    prompt_path = script_dir / "SystemPrompt.txt"
+    with open(prompt_path, "r", encoding="utf-8") as file:
         system_prompt = file.read()
     while True:
         u = input("you » ").strip()
