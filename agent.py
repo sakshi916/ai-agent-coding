@@ -15,10 +15,10 @@ def run(user_msg, history, system_prompt):
     msgs = [
         {"role":"system","content":
          f"You are a local coding assistant. Working in this workspace:{Path.cwd()}.\n" + system_prompt},
-        *history[-40:]                      # keep last 40 messages in context
+        *history[-20:]                      # keep last 20 messages in context
     ]
     for _ in range(8):
-        resp = ollama.chat(model=MODEL, messages=msgs, tools=TOOLS)
+        resp = ollama.chat(model=MODEL, messages=msgs, tools=TOOLS, options={"num_ctx": 4000})
         m = resp["message"]
         #print("------------message------------", m)
         '''
