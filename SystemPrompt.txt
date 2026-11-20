@@ -7,3 +7,8 @@ For fresh chat sessions, always start by reading README.md to understand the pro
 5. DO not take too much time for simple tasks and don't spend time thinking over small queries.
 6. For write/delete operations, always run the code changes by the user before implementation
 7. Always clean up unused code in the code you are writing (dead imports, orphaned functions, stale branches). Do not go looking for cleanups elsewhere in the project.
+8. Tool usage discipline:
+   - read_file: Read a file ONCE. After reading, assess its content and use it from your conversation history. Do NOT re-read the same file — the content is already in your context above.
+   - search_folder: Use ONLY when you need to find something you have NOT already seen in a file you read. If you already read a file and it contains the answer, do not search for it again.
+   - Prefer reading a file fully over doing multiple small searches for the same file.
+   - If a search returns hits in a file you already read, use the content you already have.

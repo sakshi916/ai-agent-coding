@@ -9,6 +9,10 @@ from command_registry import handle_command
 # Build merged registries
 TOOLS    = READ_TOOLS + WRITE_TOOLS
 DISPATCH = {**READ_DISPATCH, **WRITE_DISPATCH}
+OPTIONS = {"temperature": 0.2,
+           # "num_ctx": 4000
+           }
+MAX_ITER = 15
 
 def run(user_msg, history, system_prompt):
     history.append({"role":"user","content":user_msg})
@@ -17,13 +21,17 @@ def run(user_msg, history, system_prompt):
          f"You are a local coding assistant. Working in this workspace:{Path.cwd()}.\n" + system_prompt},
         *history[-20:]                      # keep last 20 messages in context
     ]
-    for _ in range(8):
-        resp = ollama.chat(model=MODEL, messages=msgs, tools=TOOLS, options={"num_ctx": 4000})
+    for i in range(MAX_ITER):
+        # Nudge the model to wrap up on the second-to-last iteration
+        if i == MAX_ITER - 2:
+            msgs.append({"role":"user","content":
+                "You have used most of your tool calls. Stop exploring. "
+                "Summarize what you found from the files and searches already in your "
+                "conversation history and give your final answer now."})
+
+        resp = ollama.chat(model=MODEL, messages=msgs, tools=TOOLS, options=OPTIONS)
         m = resp["message"]
-        #print("------------message------------", m)
-        '''
-        role='assistant' content='' thinking='The user wants to list files in their folder. The folder is "llm-playground". I\'ll list the contents of that directory.' images=None tool_name=None tool_calls=[ToolCall(function=Function(name='list_folder', arguments={'path': 'llm-playground'}))]
-        '''
+
         if m.get("tool_calls"):
             msgs.append(m)
             for tc in m["tool_calls"]:
@@ -34,6 +42,12 @@ def run(user_msg, history, system_prompt):
             continue
         history.append({"role":"assistant","content":m.get("content","")})
         return m.get("content","")
+
+    # Loop exhausted without a final text response
+    fallback = ("Reached max tool-call iterations without a final answer. "
+                "Try rephrasing or breaking the task into smaller steps.")
+    history.append({"role":"assistant","content":fallback})
+    return fallback
 
 
 if __name__ == "__main__":

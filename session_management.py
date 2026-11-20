@@ -2,7 +2,7 @@ from pathlib import Path
 import json, ollama, uuid
 from model import MODEL
 
-MEMO         = Path.home() / "personal_agent" / "agent_memory"
+MEMO         = Path.home() / "personal_agent" / "agent_memory" / Path.cwd().name
 MEMO.mkdir(parents=True, exist_ok=True)
 SESSIONS_DIR = MEMO / "sessions"               # one JSON file per session (uuid.json)
 SESSIONS_DIR.mkdir(exist_ok=True)

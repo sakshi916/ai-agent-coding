@@ -55,13 +55,20 @@ TOOLS = [
             "required":["path"]}}},
     {"type":"function","function":{
         "name":"read_file",
-        "description":"Read the contents of a file.",
+        "description":("Read the full contents of a file. "
+                       "Read each file ONCE — after reading, assess its content and use it "
+                       "from your conversation history. Do NOT re-read a file you have already "
+                       "read; the content is already in your context above."),
         "parameters":{"type":"object",
             "properties":{"path":{"type":"string"}},
             "required":["path"]}}},
     {"type":"function","function":{
         "name":"search_folder",
-        "description":"Search all text files in a folder for a keyword.",
+        "description":("Search all text files in a folder for a keyword. "
+                       "Use this ONLY to find information you have NOT already seen in a "
+                       "file you read. If you already read a file that likely contains the "
+                       "answer, do not search for it — refer to the content in your "
+                       "conversation history instead."),
         "parameters":{"type":"object",
             "properties":{"path":{"type":"string"},
                           "query":{"type":"string"}},
